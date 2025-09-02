@@ -23,7 +23,10 @@ type PendingComment = {
 };
 
 type RawPendingComment = Omit<PendingComment, "entries"> & {
-  entries: { title: string; slug: string }[] | { title: string; slug: string } | null;
+  entries:
+    | { title: string; slug: string }[]
+    | { title: string; slug: string }
+    | null;
 };
 
 export default function AdminPage() {
@@ -38,9 +41,11 @@ export default function AdminPage() {
   // Pending comments
   const [pendingCount, setPendingCount] = useState<number>(0);
   const [pending, setPending] = useState<PendingComment[]>([]);
-  const [moderatingIds, setModeratingIds] = useState<Record<string, boolean>>({});
+  const [moderatingIds, setModeratingIds] = useState<Record<string, boolean>>(
+    {}
+  );
 
-  // 🔴 Delete state
+  // Delete state
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -98,7 +103,9 @@ export default function AdminPage() {
       if (status === "published" && !e.published) return false;
       if (status === "draft" && e.published) return false;
       if (!q) return true;
-      return e.title.toLowerCase().includes(q) || e.slug.toLowerCase().includes(q);
+      return (
+        e.title.toLowerCase().includes(q) || e.slug.toLowerCase().includes(q)
+      );
     });
   }, [items, query, status]);
 
@@ -109,7 +116,10 @@ export default function AdminPage() {
 
   async function approveComment(id: string) {
     setModeratingIds((m) => ({ ...m, [id]: true }));
-    const { error } = await supabase.from("comments").update({ approved: true }).eq("id", id);
+    const { error } = await supabase
+      .from("comments")
+      .update({ approved: true })
+      .eq("id", id);
     if (!error) {
       setPending((rows) => rows.filter((r) => r.id !== id));
       setPendingCount((c) => Math.max(0, c - 1));
@@ -127,7 +137,6 @@ export default function AdminPage() {
     setModeratingIds((m) => ({ ...m, [id]: false }));
   }
 
-  // ✅ Option A: delete entries from the admin list
   async function removeEntry(id: string) {
     const ok = window.confirm(
       "Delete this entry? This will also remove its comments."
@@ -149,14 +158,32 @@ export default function AdminPage() {
         {/* Header */}
         <div className="mb-8">
           <div className="inline-flex items-center gap-2 rounded-full border border-teal-100 bg-teal-50 px-3 py-1 text-sm text-teal-700">
-            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 8a4 4 0 100 8 4 4 0 000-8z" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 12h2m12 0h2M6.3 6.3l1.4 1.4m8.6 8.6l1.4 1.4M6.3 17.7l1.4-1.4m8.6-8.6l1.4-1.4" />
+            <svg
+              viewBox="0 0 24 24"
+              className="h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 8a4 4 0 100 8 4 4 0 000-8z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M4 12h2m12 0h2M6.3 6.3l1.4 1.4m8.6 8.6l1.4 1.4M6.3 17.7l1.4-1.4m8.6-8.6l1.4-1.4"
+              />
             </svg>
             Admin
           </div>
-          <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-900">Dashboard</h1>
-          <p className="mt-1 text-slate-600">Manage reflections and review comments.</p>
+          <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-900">
+            Dashboard
+          </h1>
+          <p className="mt-1 text-slate-600">
+            Manage reflections and review comments.
+          </p>
         </div>
 
         {/* Toolbar */}
@@ -176,8 +203,16 @@ export default function AdminPage() {
                 stroke="currentColor"
                 strokeWidth={2}
               >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M11 19a8 8 0 100-16 8 8 0 000 16z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-3.5-3.5" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M11 19a8 8 0 100-16 8 8 0 000 16z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M21 21l-3.5-3.5"
+                />
               </svg>
             </div>
             <select
@@ -220,23 +255,34 @@ export default function AdminPage() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="text-xs text-slate-500">Total</div>
-            <div className="mt-1 text-2xl font-bold text-slate-900">{counts.total}</div>
+            <div className="mt-1 text-2xl font-bold text-slate-900">
+              {counts.total}
+            </div>
           </div>
           <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="text-xs text-slate-500">Published</div>
-            <div className="mt-1 text-2xl font-bold text-teal-700">{counts.published}</div>
+            <div className="mt-1 text-2xl font-bold text-teal-700">
+              {counts.published}
+            </div>
           </div>
           <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="text-xs text-slate-500">Drafts</div>
-            <div className="mt-1 text-2xl font-bold text-slate-900">{counts.drafts}</div>
+            <div className="mt-1 text-2xl font-bold text-slate-900">
+              {counts.drafts}
+            </div>
           </div>
         </div>
 
         {/* Pending comments preview */}
         <div className="mt-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-slate-900">Pending comments</h2>
-            <Link href="/admin/comments" className="text-sm font-medium text-teal-700 hover:text-teal-800">
+          <div className="flex items-center justify_between">
+            <h2 className="text-lg font-semibold text-slate-900">
+              Pending comments
+            </h2>
+            <Link
+              href="/admin/comments"
+              className="text-sm font-medium text-teal-700 hover:text-teal-800"
+            >
               Review all
             </Link>
           </div>
@@ -248,15 +294,24 @@ export default function AdminPage() {
           ) : (
             <ul className="mt-3 space-y-3">
               {pending.map((c) => (
-                <li key={c.id} className="rounded-xl border border-slate-200 bg-white p-5">
-                  <div className="text-sm text-slate-800 whitespace-pre-wrap">{c.body}</div>
+                <li
+                  key={c.id}
+                  className="rounded-xl border border-slate-200 bg_white p-5"
+                >
+                  <div className="text-sm text-slate-800 whitespace-pre-wrap">
+                    {c.body}
+                  </div>
                   <div className="mt-2 text-xs text-slate-500">
-                    {(c.display_name || "Guest")} · {new Date(c.created_at).toLocaleString()}
+                    {(c.display_name || "Guest")} ·{" "}
+                    {new Date(c.created_at).toLocaleString()}
                     {c.entries && (
                       <>
                         {" "}
                         · on{" "}
-                        <Link href={`/entries/${c.entries.slug}`} className="text-teal-700 hover:text-teal-800">
+                        <Link
+                          href={`/entries/${c.entries.slug}`}
+                          className="text-teal-700 hover:text-teal-800"
+                        >
                           {c.entries.title}
                         </Link>
                       </>
@@ -291,7 +346,10 @@ export default function AdminPage() {
           {loading ? (
             <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {Array.from({ length: 4 }).map((_, i) => (
-                <li key={i} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <li
+                  key={i}
+                  className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+                >
                   <div className="h-5 w-2/3 animate-pulse rounded bg-slate-200" />
                   <div className="mt-2 h-3 w-1/3 animate-pulse rounded bg-slate-200" />
                   <div className="mt-4 h-9 w-full animate-pulse rounded bg-slate-100" />
@@ -301,13 +359,29 @@ export default function AdminPage() {
           ) : filtered.length === 0 ? (
             <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center">
               <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-teal-50 text-teal-600">
-                <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 13l3-8h12l3 8M5 13v5h14v-5" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 13a3 3 0 006 0" />
+                <svg
+                  viewBox="0 0 24 24"
+                  className="h-6 w-6"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M3 13l3-8h12l3 8M5 13v5h14v-5"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9 13a3 3 0 006 0"
+                  />
                 </svg>
               </div>
               <p className="mt-3 text-slate-700">Nothing to show.</p>
-              <p className="text-sm text-slate-500">Try clearing the search or change the filter.</p>
+              <p className="text-sm text-slate-500">
+                Try clearing the search or change the filter.
+              </p>
             </div>
           ) : (
             <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -319,7 +393,9 @@ export default function AdminPage() {
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className="text-base font-semibold text-slate-900">{e.title}</h3>
+                        <h3 className="text-base font-semibold text-slate-900">
+                          {e.title}
+                        </h3>
                         <span
                           className={[
                             "inline-flex items-center rounded-full px-2 py-0.5 text-xs",
@@ -344,7 +420,16 @@ export default function AdminPage() {
                       >
                         View
                       </Link>
-                      {/* 🔴 Delete button (admin list only) */}
+
+                      {/* NEW: Edit -> reuse /admin/new for editing */}
+                      <Link
+                        href={`/admin/new?id=${e.id}`}
+                        className="rounded-md border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-900 hover:bg-slate-50"
+                        title="Edit entry"
+                      >
+                        Edit
+                      </Link>
+
                       <button
                         onClick={() => removeEntry(e.id)}
                         disabled={deletingId === e.id}

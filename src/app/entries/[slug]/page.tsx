@@ -1,11 +1,72 @@
 // src/app/entries/[slug]/page.tsx
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
-import CommentForm from "@/components/CommentForms"; // <- ensure your file is CommentForm.tsx
+import CommentForm from "@/components/CommentForms";
+import CommentGuidelines from "@/components/CommentGuidelines";
+import CommentsList from "@/components/CommentsList";
+import RenderEntryBody from "@/components/RenderEntryBody";
+import type { Metadata } from "next";
 
 export const revalidate = 0;
 
 type Params = { params: { slug: string } };
+
+// helper to make a short description from the body
+function excerpt(s: string, n = 160) {
+  const clean = s.replace(/\s+/g, " ").trim();
+  return clean.length > n ? clean.slice(0, n - 1) + "…" : clean;
+}
+
+// Use a site URL if you have one (set NEXT_PUBLIC_SITE_URL in .env.local), fallback to localhost
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
+// This runs on the server and sets <title>, Open Graph, etc. based on the entry
+export async function generateMetadata(
+  { params }: { params: { slug: string } }
+): Promise<Metadata> {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
+  const { data: entry } = await supabase
+    .from("entries")
+    .select("title, body, created_at")
+    .eq("slug", params.slug)
+    .single();
+
+  if (!entry) {
+    return {
+      title: "Reflection not found",
+      description: "This reflection doesn’t exist.",
+      alternates: { canonical: `${SITE_URL}/entries/${params.slug}` },
+    };
+  }
+
+  const url = `${SITE_URL}/entries/${params.slug}`;
+  const title = entry.title || "Reflection";
+  const description = excerpt(entry.body);
+
+  return {
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      type: "article",
+      url,
+      title,
+      description,
+      siteName: "Reflection Journal",
+      authors: ["Francisco"],
+      publishedTime: entry.created_at ?? undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+    },
+  };
+}
 
 export default async function EntryPage({ params }: Params) {
   const supabase = createClient(
@@ -13,7 +74,7 @@ export default async function EntryPage({ params }: Params) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 
-  // fetch entry by slug (published entries are already handled by RLS for public)
+  // fetch entry by slug
   const { data: entry } = await supabase
     .from("entries")
     .select("id, title, body, created_at")
@@ -28,7 +89,13 @@ export default async function EntryPage({ params }: Params) {
             href="/entries"
             className="inline-flex items-center gap-2 text-teal-700 hover:text-teal-800"
           >
-            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2}>
+            <svg
+              viewBox="0 0 24 24"
+              className="h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
             Back to all reflections
@@ -43,7 +110,7 @@ export default async function EntryPage({ params }: Params) {
     );
   }
 
-  // approved comments only (RLS enforces; we still filter by entry)
+  // approved comments only
   const { data: comments } = await supabase
     .from("comments")
     .select("id, display_name, body, created_at")
@@ -62,7 +129,13 @@ export default async function EntryPage({ params }: Params) {
           href="/entries"
           className="inline-flex items-center gap-2 text-teal-700 hover:text-teal-800"
         >
-          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2}>
+          <svg
+            viewBox="0 0 24 24"
+            className="h-4 w-4"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
           Back to all reflections
@@ -71,7 +144,9 @@ export default async function EntryPage({ params }: Params) {
 
       {/* header */}
       <header className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900">{entry.title}</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+          {entry.title}
+        </h1>
         <div className="mt-2 flex items-center gap-3 text-sm text-slate-500">
           <span>{new Date(entry.created_at).toLocaleDateString()}</span>
           <span className="h-1 w-1 rounded-full bg-slate-300" />
@@ -80,9 +155,8 @@ export default async function EntryPage({ params }: Params) {
       </header>
 
       {/* body */}
-      <article className="prose prose-slate mt-6 max-w-none">
-        {/* keeps your manual line breaks */}
-        <p className="whitespace-pre-wrap">{entry.body}</p>
+      <article className="mt-6">
+        <RenderEntryBody text={entry.body} />
       </article>
 
       {/* divider */}
@@ -92,28 +166,17 @@ export default async function EntryPage({ params }: Params) {
       <section className="mt-8">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-slate-900">Comments</h2>
-          <span className="text-sm text-slate-500">{count} {count === 1 ? "comment" : "comments"}</span>
+          <span className="text-sm text-slate-500">
+            {count} {count === 1 ? "comment" : "comments"}
+          </span>
         </div>
 
-        <ul className="mt-4 space-y-4">
-          {(comments ?? []).map((c) => (
-            <li key={c.id} className="rounded-xl border border-slate-200 bg-white p-4">
-              <div className="text-sm text-slate-800 whitespace-pre-wrap">{c.body}</div>
-              <div className="mt-2 text-xs text-slate-500">
-                {c.display_name ? `${c.display_name} · ` : ""}
-                {new Date(c.created_at).toLocaleString()}
-              </div>
-            </li>
-          ))}
-          {(!comments || comments.length === 0) && (
-            <li className="rounded-xl border border-slate-200 bg-white p-6 text-center text-sm text-slate-500">
-              No comments yet.
-            </li>
-          )}
-        </ul>
+        {/* Simple, badged list */}
+        <CommentsList comments={comments ?? []} />
 
         {/* comment form card */}
         <div className="mt-6 rounded-xl border border-slate-200 bg-white p-5">
+          <CommentGuidelines />
           <div className="mb-2 text-sm font-medium text-slate-900">Leave a comment</div>
           <p className="text-xs text-slate-500">
             Be thoughtful and respectful. Your comment will appear once approved.
