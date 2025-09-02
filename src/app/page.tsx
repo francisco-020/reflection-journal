@@ -1,103 +1,131 @@
-import Image from "next/image";
+// src/app/page.tsx
+import Link from "next/link";
+import { createClient } from "@supabase/supabase-js";
+import LandingCTAs from "@/components/LandingCTAs";
 
-export default function Home() {
+type Entry = {
+  title: string;
+  slug: string;
+  body: string;
+  created_at: string;
+};
+
+export const revalidate = 0; // always show latest
+
+export default async function LandingPage() {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
+  const { data: entries } = await supabase
+    .from("entries")
+    .select("title, slug, body, created_at")
+    .eq("published", true)
+    .order("created_at", { ascending: false })
+    .limit(3);
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <main className="relative min-h-screen overflow-hidden bg-white">
+      {/* soft, contemplative gradient accents (teal/emerald) */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-40 -left-28 h-[28rem] w-[28rem] rounded-full blur-3xl opacity-25"
+        style={{ background: "radial-gradient(140px 140px at 70% 30%, #14b8a655, transparent 60%)" }} // teal-500 @ ~33% alpha
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -bottom-48 -right-28 h-[30rem] w-[30rem] rounded-full blur-3xl opacity-25"
+        style={{ background: "radial-gradient(160px 160px at 30% 70%, #34d39955, transparent 60%)" }} // emerald-400 @ ~33% alpha
+      />
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      {/* hero */}
+      <section className="relative">
+        <div className="mx-auto max-w-6xl px-6 pt-20 md:pt-28">
+          <div className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm text-slate-600 bg-white/60 backdrop-blur">
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-teal-500" />
+            Reflection Journal
+          </div>
+
+          <h1 className="mt-5 text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl md:text-6xl">
+            A calm place to explore{" "}
+            <span className="bg-gradient-to-r from-teal-600 to-emerald-500 bg-clip-text text-transparent">
+              theology, philosophy
+            </span>{" "}
+            & spirituality
+          </h1>
+
+          <p className="mt-4 max-w-2xl text-lg text-slate-600">
+            Public to read and discuss. Authoring is private — only I can publish.
+            Thoughtful, respectful comments are welcome.
+          </p>
+
+          {/* ✅ Replace the old buttons block with this */}
+          <LandingCTAs />
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+      </section>
+
+      {/* latest reflections */}
+      <section className="relative mt-16 mb-24">
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-slate-900">Latest reflections</h2>
+            <Link href="/entries" className="text-sm font-medium text-teal-700 hover:text-teal-800">
+              View all
+            </Link>
+          </div>
+
+          <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-3">
+            {(entries ?? []).map((e) => {
+              const snippet = e.body.length > 160 ? e.body.slice(0, 160).trimEnd() + "…" : e.body;
+              return (
+                <Link
+                  key={e.slug}
+                  href={`/entries/${e.slug}`}
+                  className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow"
+                >
+                  <div className="text-xs text-slate-500">
+                    {new Date(e.created_at).toLocaleDateString()}
+                  </div>
+                  <h3 className="mt-1 text-lg font-semibold text-slate-900 line-clamp-2">
+                    {e.title}
+                  </h3>
+                  <p className="mt-2 text-sm text-slate-600 line-clamp-4">{snippet}</p>
+                  <span className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-teal-700">
+                    Read more
+                    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </span>
+                </Link>
+              );
+            })}
+
+            {/* empty state */}
+            {(!entries || entries.length === 0) && (
+              <div className="md:col-span-3 rounded-2xl border border-slate-200 bg-white p-8 text-center">
+                <p className="text-slate-600">No reflections yet. Check back soon.</p>
+              </div>
+            )}
+          </div>
+
+          {/* comment policy */}
+          <div className="mt-10 rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-700">
+            <div className="flex items-center gap-2 font-medium text-slate-900">
+              {/* chat icon */}
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h8M8 14h5" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16v10H7l-3 3V6z" />
+              </svg>
+              Comments & moderation
+            </div>
+            <p className="mt-1">
+              Visitors can leave comments on each reflection. Comments are public once approved.
+              Please be respectful and constructive.
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
   );
 }
