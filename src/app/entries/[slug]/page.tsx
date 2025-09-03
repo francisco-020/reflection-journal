@@ -9,7 +9,7 @@ import type { Metadata } from "next";
 
 export const revalidate = 0;
 
-type Params = { params: { slug: string } };
+type SlugParams = { slug: string };
 
 // helper to make a short description from the body
 function excerpt(s: string, n = 160) {
@@ -22,8 +22,10 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
 // This runs on the server and sets <title>, Open Graph, etc. based on the entry
 export async function generateMetadata(
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<SlugParams> }
 ): Promise<Metadata> {
+  const { slug } = await params;
+
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -32,18 +34,18 @@ export async function generateMetadata(
   const { data: entry } = await supabase
     .from("entries")
     .select("title, body, created_at")
-    .eq("slug", params.slug)
+    .eq("slug", slug)
     .single();
 
   if (!entry) {
     return {
       title: "Reflection not found",
       description: "This reflection doesn’t exist.",
-      alternates: { canonical: `${SITE_URL}/entries/${params.slug}` },
+      alternates: { canonical: `${SITE_URL}/entries/${slug}` },
     };
   }
 
-  const url = `${SITE_URL}/entries/${params.slug}`;
+  const url = `${SITE_URL}/entries/${slug}`;
   const title = entry.title || "Reflection";
   const description = excerpt(entry.body);
 
@@ -68,7 +70,11 @@ export async function generateMetadata(
   };
 }
 
-export default async function EntryPage({ params }: Params) {
+export default async function EntryPage(
+  { params }: { params: Promise<SlugParams> }
+) {
+  const { slug } = await params;
+
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -78,7 +84,7 @@ export default async function EntryPage({ params }: Params) {
   const { data: entry } = await supabase
     .from("entries")
     .select("id, title, body, created_at")
-    .eq("slug", params.slug)
+    .eq("slug", slug)
     .single();
 
   if (!entry) {
