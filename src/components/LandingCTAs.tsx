@@ -31,6 +31,19 @@ export default function LandingCTAs() {
         Read reflections
       </Link>
 
+      {/* About this project */}
+      <Link
+        href="/about"
+        className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-5 py-3 text-slate-900 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-200"
+      >
+        {/* info icon */}
+        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01" />
+          <circle cx="12" cy="12" r="9" />
+        </svg>
+        About this project
+      </Link>
+
       {/* Only for you (when logged in and admin) */}
       {isAdmin && (
         <Link
